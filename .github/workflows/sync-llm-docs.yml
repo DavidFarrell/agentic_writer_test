@@ -1,0 +1,50 @@
+name: Sync LLM_docs
+
+on:
+  schedule:
+    # Runs at the top of every hour (00 minutes past the hour)
+    - cron: '0 * * * *'
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for subtree
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Pull updates from LLM_docs
+        run: |
+          echo "Pulling latest changes from LLM_docs repository..."
+          git subtree pull --prefix LLM_docs https://github.com/DavidFarrell/LLM_docs main --squash -m "chore: sync LLM_docs from upstream"
+        continue-on-error: true
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet HEAD@{1} HEAD 2>/dev/null; then
+            echo "changes=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          else
+            echo "changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+          fi
+
+      - name: Push changes
+        if: steps.check_changes.outputs.changes == 'true'
+        run: |
+          git push origin main
+          echo "Successfully pushed LLM_docs updates"
+
+      - name: No updates needed
+        if: steps.check_changes.outputs.changes == 'false'
+        run: echo "LLM_docs is already up to date"
