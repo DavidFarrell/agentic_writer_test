@@ -1,0 +1,8 @@
+python-fasthtml
+monsterui
+google-genai
+python-dotenv
+youtube-transcript-api
+pypdf
+beautifulsoup4
+pytest
