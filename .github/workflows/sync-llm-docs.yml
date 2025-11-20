@@ -9,6 +9,8 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow the workflow to push changes
 
     steps:
       - name: Checkout repository
